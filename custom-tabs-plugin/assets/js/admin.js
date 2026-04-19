@@ -13,7 +13,6 @@ jQuery( document ).ready( function( $ ) {
 		const index = repeater.find( '.custom-tabs-row' ).length;
 		const template = $( '#tmpl-tab-row' ).html().replace( /{{ index }}/g, index );
 		repeater.append( template );
-		attachRowHandlers();
 	} );
 
 	// Remove Tab Row
@@ -29,7 +28,6 @@ jQuery( document ).ready( function( $ ) {
 		const index = container.find( '.custom-logo-row' ).length;
 		const template = $( '#tmpl-logo-row' ).html().replace( /{{ index }}/g, index );
 		container.append( template );
-		attachLogoHandlers();
 	} );
 
 	// Remove Logo Row
@@ -114,14 +112,4 @@ jQuery( document ).ready( function( $ ) {
 		frame.open();
 	}
 
-	/**
-	 * Attach event handlers to dynamically added rows
-	 */
-	function attachRowHandlers() {
-		// Handlers will be attached via document.on() events
-	}
-
-	function attachLogoHandlers() {
-		// Handlers will be attached via document.on() events
-	}
 } );

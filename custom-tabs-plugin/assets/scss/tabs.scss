@@ -100,10 +100,6 @@ $bp-mobile: 768px;
 	display: flex;
 	flex-direction: column;
 	gap: 24px;
-
-	@media (max-width: $bp-mobile) {
-		flex-direction: column;
-	}
 }
 
 // Quote Card

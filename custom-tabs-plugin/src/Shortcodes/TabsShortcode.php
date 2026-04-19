@@ -2,19 +2,20 @@
 
 namespace CustomTabsPlugin\Shortcodes;
 
+use CustomTabsPlugin\Config;
+
 class TabsShortcode {
-	private const OPTION_KEY = 'custom_tabs_data';
 
 	public function register(): void {
 		add_shortcode( 'custom_tabs', [ $this, 'render' ] );
 	}
 
-	public function render( $atts ): string {
-		wp_enqueue_style( 'custom-tabs', plugin_dir_url( __DIR__ ) . '../../assets/css/tabs.css' );
-		wp_enqueue_script( 'custom-tabs', plugin_dir_url( __DIR__ ) . '../../assets/js/tabs.js', [], '1.0.0', true );
+	public function render( array $atts = [] ): string {
+		wp_enqueue_style( 'custom-tabs', CUSTOM_TABS_URL . 'assets/css/tabs.css', [], CUSTOM_TABS_VERSION );
+		wp_enqueue_script( 'custom-tabs', CUSTOM_TABS_URL . 'assets/js/tabs.js', [], CUSTOM_TABS_VERSION, true );
 
-		$data = get_option( self::OPTION_KEY, [ 'tabs' => [], 'trusted_logos' => [] ] );
-		$tabs = $data['tabs'] ?? [];
+		$data          = get_option( Config::OPTION_KEY, Config::DEFAULT_DATA );
+		$tabs          = $data['tabs'] ?? [];
 		$trusted_logos = $data['trusted_logos'] ?? [];
 
 		if ( empty( $tabs ) ) {
@@ -22,7 +23,7 @@ class TabsShortcode {
 		}
 
 		ob_start();
-		include __DIR__ . '/../../templates/tabs.php';
+		include CUSTOM_TABS_PATH . 'templates/tabs.php';
 		return ob_get_clean();
 	}
 }

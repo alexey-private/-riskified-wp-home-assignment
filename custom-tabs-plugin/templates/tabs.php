@@ -45,7 +45,8 @@ if ( ! defined( 'WPINC' ) ) {
 								<img
 									src="<?php echo esc_url( $tab['author_avatar'] ); ?>"
 									alt="<?php echo esc_attr( $tab['author_name'] ); ?>"
-									class="quote-card__avatar">
+									class="quote-card__avatar"
+									loading="lazy">
 							<?php endif; ?>
 							<div>
 								<strong><?php echo esc_html( $tab['author_name'] ); ?></strong>
@@ -56,7 +57,8 @@ if ( ! defined( 'WPINC' ) ) {
 							<img
 								src="<?php echo esc_url( $tab['company_logo'] ); ?>"
 								alt="Company logo"
-								class="quote-card__logo">
+								class="quote-card__logo"
+								loading="lazy">
 						<?php endif; ?>
 					</div>
 
@@ -92,7 +94,8 @@ if ( ! defined( 'WPINC' ) ) {
 						<img
 							src="<?php echo esc_url( $logo['url'] ); ?>"
 							alt="<?php echo esc_attr( $logo['alt'] ); ?>"
-							class="trusted-by__logo">
+							class="trusted-by__logo"
+							loading="lazy">
 					<?php endif; ?>
 				<?php endforeach; ?>
 			</div>

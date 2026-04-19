@@ -2,9 +2,9 @@
 
 namespace CustomTabsPlugin\Admin;
 
+use CustomTabsPlugin\Config;
+
 class TabsOptionsPage {
-	private const OPTION_KEY = 'custom_tabs_data';
-	private const SETTINGS_GROUP = 'custom_tabs_group';
 
 	public function register(): void {
 		add_action( 'admin_menu', [ $this, 'add_menu_page' ] );
@@ -26,11 +26,11 @@ class TabsOptionsPage {
 
 	public function register_settings(): void {
 		register_setting(
-			self::SETTINGS_GROUP,
-			self::OPTION_KEY,
+			Config::SETTINGS_GROUP,
+			Config::OPTION_KEY,
 			[
 				'sanitize_callback' => [ $this, 'sanitize_data' ],
-				'default'           => [ 'tabs' => [], 'trusted_logos' => [] ],
+				'default'           => Config::DEFAULT_DATA,
 			]
 		);
 	}
@@ -40,22 +40,28 @@ class TabsOptionsPage {
 			return;
 		}
 		wp_enqueue_media();
-		wp_enqueue_script( 'custom-tabs-admin', plugin_dir_url( __DIR__ ) . '../../assets/js/admin.js', [ 'jquery' ], '1.0.0', true );
+		wp_enqueue_script(
+			'custom-tabs-admin',
+			CUSTOM_TABS_URL . 'assets/js/admin.js',
+			[ 'jquery' ],
+			CUSTOM_TABS_VERSION,
+			true
+		);
 	}
 
 	public function render_page(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			return;
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'custom-tabs-plugin' ) );
 		}
 
-		$data = get_option( self::OPTION_KEY, [ 'tabs' => [], 'trusted_logos' => [] ] );
-		$tabs = $data['tabs'] ?? [];
+		$data          = get_option( Config::OPTION_KEY, Config::DEFAULT_DATA );
+		$tabs          = $data['tabs'] ?? [];
 		$trusted_logos = $data['trusted_logos'] ?? [];
 		?>
 		<div class="wrap">
 			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 			<form method="post" action="options.php">
-				<?php settings_fields( self::SETTINGS_GROUP ); ?>
+				<?php settings_fields( Config::SETTINGS_GROUP ); ?>
 
 				<h2><?php esc_html_e( 'Tabs', 'custom-tabs-plugin' ); ?></h2>
 				<table class="form-table custom-tabs-repeater" id="tabs-repeater">
@@ -73,11 +79,9 @@ class TabsOptionsPage {
 						</tr>
 					</thead>
 					<tbody>
-						<?php if ( ! empty( $tabs ) ) : ?>
-							<?php foreach ( $tabs as $index => $tab ) : ?>
-								<?php $this->render_tab_row( $index, $tab ); ?>
-							<?php endforeach; ?>
-						<?php endif; ?>
+						<?php foreach ( $tabs as $index => $tab ) : ?>
+							<?php $this->render_tab_row( $index, $tab ); ?>
+						<?php endforeach; ?>
 					</tbody>
 				</table>
 				<button type="button" class="button" id="add-tab-row"><?php esc_html_e( 'Add Tab', 'custom-tabs-plugin' ); ?></button>
@@ -104,33 +108,35 @@ class TabsOptionsPage {
 		<?php
 	}
 
-	private function render_tab_row( $index, array $tab ): void {
+	private function render_tab_row( int|string $index, array $tab ): void {
 		$tab = wp_parse_args(
 			$tab,
 			[
-				'label'        => '',
-				'quote_text'   => '',
-				'author_name'  => '',
-				'author_title' => '',
+				'label'         => '',
+				'quote_text'    => '',
+				'author_name'   => '',
+				'author_title'  => '',
 				'author_avatar' => '',
-				'company_logo' => '',
-				'bg_image'     => '',
-				'stat_number'  => '',
-				'stat_label'   => '',
-				'cta_text'     => '',
-				'cta_link'     => '',
+				'company_logo'  => '',
+				'bg_image'      => '',
+				'stat_number'   => '',
+				'stat_label'    => '',
+				'cta_text'      => '',
+				'cta_link'      => '',
 			]
 		);
+		$idx = esc_attr( $index );
+		$key = Config::OPTION_KEY;
 		?>
-		<tr class="custom-tabs-row" data-index="<?php echo esc_attr( $index ); ?>">
-			<td><input type="text" name="custom_tabs_data[tabs][<?php echo esc_attr( $index ); ?>][label]" value="<?php echo esc_attr( $tab['label'] ); ?>" placeholder="e.g. Retail"></td>
-			<td><textarea name="custom_tabs_data[tabs][<?php echo esc_attr( $index ); ?>][quote_text]" placeholder="Quote text" rows="3"><?php echo esc_textarea( $tab['quote_text'] ); ?></textarea></td>
-			<td><input type="text" name="custom_tabs_data[tabs][<?php echo esc_attr( $index ); ?>][author_name]" value="<?php echo esc_attr( $tab['author_name'] ); ?>" placeholder="Author name"></td>
-			<td><input type="text" name="custom_tabs_data[tabs][<?php echo esc_attr( $index ); ?>][author_title]" value="<?php echo esc_attr( $tab['author_title'] ); ?>" placeholder="Chief Officer"></td>
-			<td><input type="text" name="custom_tabs_data[tabs][<?php echo esc_attr( $index ); ?>][stat_number]" value="<?php echo esc_attr( $tab['stat_number'] ); ?>" placeholder="e.g. 50%"></td>
-			<td><input type="text" name="custom_tabs_data[tabs][<?php echo esc_attr( $index ); ?>][stat_label]" value="<?php echo esc_attr( $tab['stat_label'] ); ?>" placeholder="Reduction in costs"></td>
-			<td><input type="text" name="custom_tabs_data[tabs][<?php echo esc_attr( $index ); ?>][cta_text]" value="<?php echo esc_attr( $tab['cta_text'] ); ?>" placeholder="Read case study"></td>
-			<td><input type="url" name="custom_tabs_data[tabs][<?php echo esc_attr( $index ); ?>][cta_link]" value="<?php echo esc_attr( $tab['cta_link'] ); ?>" placeholder="https://..."></td>
+		<tr class="custom-tabs-row" data-index="<?php echo $idx; ?>">
+			<td><input type="text" name="<?php echo $key; ?>[tabs][<?php echo $idx; ?>][label]" value="<?php echo esc_attr( $tab['label'] ); ?>" placeholder="e.g. Retail"></td>
+			<td><textarea name="<?php echo $key; ?>[tabs][<?php echo $idx; ?>][quote_text]" placeholder="Quote text" rows="3"><?php echo esc_textarea( $tab['quote_text'] ); ?></textarea></td>
+			<td><input type="text" name="<?php echo $key; ?>[tabs][<?php echo $idx; ?>][author_name]" value="<?php echo esc_attr( $tab['author_name'] ); ?>" placeholder="Author name"></td>
+			<td><input type="text" name="<?php echo $key; ?>[tabs][<?php echo $idx; ?>][author_title]" value="<?php echo esc_attr( $tab['author_title'] ); ?>" placeholder="Chief Officer"></td>
+			<td><input type="text" name="<?php echo $key; ?>[tabs][<?php echo $idx; ?>][stat_number]" value="<?php echo esc_attr( $tab['stat_number'] ); ?>" placeholder="e.g. 50%"></td>
+			<td><input type="text" name="<?php echo $key; ?>[tabs][<?php echo $idx; ?>][stat_label]" value="<?php echo esc_attr( $tab['stat_label'] ); ?>" placeholder="Reduction in costs"></td>
+			<td><input type="text" name="<?php echo $key; ?>[tabs][<?php echo $idx; ?>][cta_text]" value="<?php echo esc_attr( $tab['cta_text'] ); ?>" placeholder="Read case study"></td>
+			<td><input type="url" name="<?php echo $key; ?>[tabs][<?php echo $idx; ?>][cta_link]" value="<?php echo esc_attr( $tab['cta_link'] ); ?>" placeholder="https://..."></td>
 			<td>
 				<button type="button" class="button button-small remove-tab-row"><?php esc_html_e( 'Remove', 'custom-tabs-plugin' ); ?></button>
 				<button type="button" class="button button-small upload-media" data-field="author_avatar"><?php esc_html_e( 'Avatar', 'custom-tabs-plugin' ); ?></button>
@@ -141,33 +147,26 @@ class TabsOptionsPage {
 		<?php
 	}
 
-	private function render_logo_row( $index, array $logo ): void {
-		$logo = wp_parse_args(
-			$logo,
-			[
-				'url' => '',
-				'alt' => '',
-			]
-		);
+	private function render_logo_row( int|string $index, array $logo ): void {
+		$logo = wp_parse_args( $logo, [ 'url' => '', 'alt' => '' ] );
+		$idx  = esc_attr( $index );
+		$key  = Config::OPTION_KEY;
 		?>
-		<div class="custom-logo-row" data-index="<?php echo esc_attr( $index ); ?>">
-			<input type="url" name="custom_tabs_data[trusted_logos][<?php echo esc_attr( $index ); ?>][url]" value="<?php echo esc_attr( $logo['url'] ); ?>" placeholder="Image URL">
-			<input type="text" name="custom_tabs_data[trusted_logos][<?php echo esc_attr( $index ); ?>][alt]" value="<?php echo esc_attr( $logo['alt'] ); ?>" placeholder="Alt text">
+		<div class="custom-logo-row" data-index="<?php echo $idx; ?>">
+			<input type="url" name="<?php echo $key; ?>[trusted_logos][<?php echo $idx; ?>][url]" value="<?php echo esc_attr( $logo['url'] ); ?>" placeholder="Image URL">
+			<input type="text" name="<?php echo $key; ?>[trusted_logos][<?php echo $idx; ?>][alt]" value="<?php echo esc_attr( $logo['alt'] ); ?>" placeholder="Alt text">
 			<button type="button" class="button button-small remove-logo-row"><?php esc_html_e( 'Remove', 'custom-tabs-plugin' ); ?></button>
 			<button type="button" class="button button-small upload-logo-media"><?php esc_html_e( 'Upload', 'custom-tabs-plugin' ); ?></button>
 		</div>
 		<?php
 	}
 
-	public function sanitize_data( $input ): array {
+	public function sanitize_data( mixed $input ): array {
 		if ( ! is_array( $input ) ) {
-			return [ 'tabs' => [], 'trusted_logos' => [] ];
+			return Config::DEFAULT_DATA;
 		}
 
-		$sanitized = [
-			'tabs'           => [],
-			'trusted_logos'  => [],
-		];
+		$sanitized = [ 'tabs' => [], 'trusted_logos' => [] ];
 
 		if ( isset( $input['tabs'] ) && is_array( $input['tabs'] ) ) {
 			foreach ( $input['tabs'] as $index => $tab ) {
@@ -175,17 +174,17 @@ class TabsOptionsPage {
 					continue;
 				}
 				$sanitized['tabs'][ $index ] = [
-					'label'          => sanitize_text_field( $tab['label'] ?? '' ),
-					'quote_text'     => wp_kses_post( $tab['quote_text'] ?? '' ),
-					'author_name'    => sanitize_text_field( $tab['author_name'] ?? '' ),
-					'author_title'   => sanitize_text_field( $tab['author_title'] ?? '' ),
-					'author_avatar'  => esc_url_raw( $tab['author_avatar'] ?? '' ),
-					'company_logo'   => esc_url_raw( $tab['company_logo'] ?? '' ),
-					'bg_image'       => esc_url_raw( $tab['bg_image'] ?? '' ),
-					'stat_number'    => sanitize_text_field( $tab['stat_number'] ?? '' ),
-					'stat_label'     => sanitize_text_field( $tab['stat_label'] ?? '' ),
-					'cta_text'       => sanitize_text_field( $tab['cta_text'] ?? '' ),
-					'cta_link'       => esc_url_raw( $tab['cta_link'] ?? '' ),
+					'label'         => sanitize_text_field( $tab['label'] ?? '' ),
+					'quote_text'    => wp_kses_post( $tab['quote_text'] ?? '' ),
+					'author_name'   => sanitize_text_field( $tab['author_name'] ?? '' ),
+					'author_title'  => sanitize_text_field( $tab['author_title'] ?? '' ),
+					'author_avatar' => esc_url_raw( $tab['author_avatar'] ?? '' ),
+					'company_logo'  => esc_url_raw( $tab['company_logo'] ?? '' ),
+					'bg_image'      => esc_url_raw( $tab['bg_image'] ?? '' ),
+					'stat_number'   => sanitize_text_field( $tab['stat_number'] ?? '' ),
+					'stat_label'    => sanitize_text_field( $tab['stat_label'] ?? '' ),
+					'cta_text'      => sanitize_text_field( $tab['cta_text'] ?? '' ),
+					'cta_link'      => esc_url_raw( $tab['cta_link'] ?? '' ),
 				];
 			}
 		}
