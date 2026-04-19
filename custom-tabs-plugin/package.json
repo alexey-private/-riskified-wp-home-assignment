@@ -1,0 +1,12 @@
+{
+  "name": "custom-tabs-plugin",
+  "version": "1.0.0",
+  "description": "Case study industry tabs component",
+  "scripts": {
+    "build": "sass assets/scss/tabs.scss assets/css/tabs.css --style=compressed",
+    "watch": "sass --watch assets/scss/tabs.scss assets/css/tabs.css"
+  },
+  "devDependencies": {
+    "sass": "^1.77.0"
+  }
+}

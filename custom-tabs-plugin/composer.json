@@ -1,0 +1,13 @@
+{
+  "name": "custom/custom-tabs-plugin",
+  "description": "Case study industry tabs component",
+  "type": "wordpress-plugin",
+  "autoload": {
+    "psr-4": {
+      "CustomTabsPlugin\\": "src/"
+    }
+  },
+  "require": {
+    "php": ">=8.1"
+  }
+}
